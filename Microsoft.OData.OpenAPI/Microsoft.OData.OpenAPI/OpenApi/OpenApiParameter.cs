@@ -35,7 +35,14 @@ namespace Microsoft.OData.OpenAPI
         /// <summary>
         /// Used to pass a specific cookie value to the API.
         /// </summary>
-        cookie
+        cookie,
+
+        /// <summary>
+        /// The payload that's appended to the HTTP request. Since there can only be one payload, there can only be one body parameter. 
+        /// The name of the body parameter has no effect on the parameter itself and is used for documentation purposes only. 
+        /// Since Form parameters are also in the payload, body and form parameters cannot exist together for the same operation.
+        /// </summary>
+        body
     }
 
     /// <summary>
@@ -280,32 +287,103 @@ namespace Microsoft.OData.OpenAPI
                 writer.WriteBooleanProperty(OpenApiConstants.OpenApiDocRequired, Required, false);
             }
 
-            // deprecated
-            writer.WriteBooleanProperty(OpenApiConstants.OpenApiDocDeprecated, Deprecated, false);
+            if (writer.Version == OpenApiVersion.version3)
+            {
+                // deprecated
+                writer.WriteBooleanProperty(OpenApiConstants.OpenApiDocDeprecated, Deprecated, false);
 
-            // allowEmptyValue
-            writer.WriteBooleanProperty(OpenApiConstants.OpenApiDocDeprecated, AllowEmptyValue, false);
+                // allowEmptyValue
+                writer.WriteBooleanProperty(OpenApiConstants.OpenApiDocDeprecated, AllowEmptyValue, false);
 
-            // style
-            writer.WriteRequiredProperty(OpenApiConstants.OpenApiDocStyle, Style.ToString());
+                // style
+                writer.WriteRequiredProperty(OpenApiConstants.OpenApiDocStyle, Style.ToString());
 
-            // explode
-            writer.WriteBooleanProperty(OpenApiConstants.OpenApiDocExplode, Explode, false);
+                // explode
+                writer.WriteBooleanProperty(OpenApiConstants.OpenApiDocExplode, Explode, false);
 
-            // allowReserved
-            writer.WriteBooleanProperty(OpenApiConstants.OpenApiDocAllowReserved, AllowReserved, false);
+                // allowReserved
+                writer.WriteBooleanProperty(OpenApiConstants.OpenApiDocAllowReserved, AllowReserved, false);
 
-            // schema
-            writer.WriteOptionalObject(OpenApiConstants.OpenApiDocSchema, Schema);
+                // schema
+                writer.WriteOptionalObject(OpenApiConstants.OpenApiDocSchema, Schema);
 
-            // example
-            writer.WriteOptionalObject(OpenApiConstants.OpenApiDocExample, Example);
+                // example
+                writer.WriteOptionalObject(OpenApiConstants.OpenApiDocExample, Example);
 
-            // examples
-            writer.WriteOptionalDictionary(OpenApiConstants.OpenApiDocExamples, Examples);
+                // examples
+                writer.WriteOptionalDictionary(OpenApiConstants.OpenApiDocExamples, Examples);
 
-            // content
-            writer.WriteOptionalDictionary(OpenApiConstants.OpenApiDocContent, Content);
+                // content
+                writer.WriteOptionalDictionary(OpenApiConstants.OpenApiDocContent, Content);
+            }
+            else
+            {
+                if (In == ParameterLocation.body)
+                {
+                    // schema
+                    writer.WriteRequiredObject(OpenApiConstants.OpenApiDocSchema, Schema);
+                }
+                else
+                {
+                    // type
+                    writer.WriteRequiredProperty(OpenApiConstants.OpenApiDocType, Schema.Type);
+
+                    // Format
+                    writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocFormat, Schema.Format);
+
+                    // allowEmptyValue
+                    writer.WriteBooleanProperty(OpenApiConstants.OpenApiDocDeprecated, AllowEmptyValue, false);
+
+                    if (Schema.Type == "array")
+                    {
+                        // Items
+                        writer.WriteRequiredObject(OpenApiConstants.OpenApiDocItems, Schema.Items);
+                    }
+                    else {
+                        // Items
+                        writer.WriteOptionalObject(OpenApiConstants.OpenApiDocItems, Schema.Items);
+                    }
+
+                    // Default
+                    writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocDefault, Schema.Default);
+
+                    // Maximum
+                    writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocMaximum, Schema.Maximum);
+
+                    // exclusiveMaximum
+                    writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocExclusiveMaximum, Schema.ExclusiveMaximum);
+
+                    // Minimum
+                    writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocMinimum, Schema.Minimum);
+
+                    // exclusiveMinimum
+                    writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocExclusiveMinimum, Schema.ExclusiveMinimum);
+
+                    // MaxLength
+                    writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocMaxLength, Schema.MaxLength);
+
+                    // MinLength
+                    writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocMinLength, Schema.MinLength);
+
+                    // Pattern
+                    writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocPattern, Schema.Pattern);
+
+                    // MaxItems
+                    writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocMaxItems, Schema.MaxItems);
+
+                    // MinItems
+                    writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocMinItems, Schema.MinItems);
+
+                    // UniqueItems
+                    writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocUniqueItems, Schema.UniqueItems);
+
+                    // enum
+                    writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocEnum, Schema.Enum);
+
+                    // multipleOf
+                    writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocMultipleOf, Schema.MultipleOf);
+                }
+            }
 
             // specification extensions
             writer.WriteDictionary(Extensions);

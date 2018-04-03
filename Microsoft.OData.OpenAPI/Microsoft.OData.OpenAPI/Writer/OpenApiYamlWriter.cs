@@ -20,7 +20,7 @@ namespace Microsoft.OData.OpenAPI
         /// </summary>
         /// <param name="textWriter">The text writer.</param>
         public OpenApiYamlWriter(TextWriter textWriter)
-            : this(textWriter, new OpenApiWriterSettings())
+            : this(textWriter, OpenApiVersion.version3, null)
         {
         }
 
@@ -29,8 +29,8 @@ namespace Microsoft.OData.OpenAPI
         /// </summary>
         /// <param name="textWriter">The text writer.</param>
         /// <param name="settings">The writer settings.</param>
-        public OpenApiYamlWriter(TextWriter textWriter, OpenApiWriterSettings settings)
-            : base(textWriter, settings)
+        public OpenApiYamlWriter(TextWriter textWriter, OpenApiVersion version, string serviceName)
+            : base(textWriter, version, serviceName)
         {
         }
 

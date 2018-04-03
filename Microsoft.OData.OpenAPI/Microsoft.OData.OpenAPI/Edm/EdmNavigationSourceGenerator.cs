@@ -19,8 +19,8 @@ namespace Microsoft.OData.OpenAPI
         /// </summary>
         /// <param name="model">The Edm model.</param>
         /// <param name="settings">The Open Api writer settings.</param>
-        public EdmNavigationSourceGenerator(IEdmModel model, OpenApiWriterSettings settings)
-            : base(model, settings)
+        public EdmNavigationSourceGenerator(IEdmModel model, OpenApiVersion version, OpenApiWriterSettings settings)
+            : base(model, version, settings)
         {
             _boundOperations = new Dictionary<IEdmTypeReference, IEdmOperation>();
             foreach (var edmOperation in model.SchemaElements.OfType<IEdmOperation>().Where(e => e.IsBound))
@@ -30,16 +30,16 @@ namespace Microsoft.OData.OpenAPI
             }
         }
 
-        public IDictionary<string, OpenApiPathItem> CreatePaths(IEdmEntitySet entitySet)
+        public IDictionary<string, OpenApiPathItem> CreatePaths(IEdmEntitySet entitySet, OpenApiVersion version)
         {
             IDictionary<string, OpenApiPathItem> paths = new Dictionary<string, OpenApiPathItem>();
 
             // itself
             OpenApiPathItem pathItem = new OpenApiPathItem
             {
-                Get = entitySet.CreateGetOperationForEntitySet(),
+                Get = entitySet.CreateGetOperationForEntitySet(version),
 
-                Post = entitySet.CreatePostOperationForEntitySet()
+                Post = entitySet.CreatePostOperationForEntitySet(version)
             };
             paths.Add("/" + entitySet.Name, pathItem);
 
@@ -47,16 +47,16 @@ namespace Microsoft.OData.OpenAPI
             string entityPathName = entitySet.CreatePathNameForEntity();
             pathItem = new OpenApiPathItem
             {
-                Get = entitySet.CreateGetOperationForEntity(),
+                Get = entitySet.CreateGetOperationForEntity(version),
 
-                Patch = entitySet.CreatePatchOperationForEntity(),
+                Patch = entitySet.CreatePatchOperationForEntity(version),
 
-                Delete = entitySet.CreateDeleteOperationForEntity()
+                Delete = entitySet.CreateDeleteOperationForEntity(version)
             };
             paths.Add(entityPathName, pathItem);
 
             // bound operations
-            IDictionary<string, OpenApiPathItem> operations = CreatePathItemsWithOperations(entitySet);
+            IDictionary<string, OpenApiPathItem> operations = CreatePathItemsWithOperations(entitySet, version);
             foreach (var operation in operations)
             {
                 paths.Add(operation);
@@ -65,7 +65,7 @@ namespace Microsoft.OData.OpenAPI
             return paths;
         }
 
-        public IDictionary<string, OpenApiPathItem> CreatePaths(IEdmSingleton singleton)
+        public IDictionary<string, OpenApiPathItem> CreatePaths(IEdmSingleton singleton, OpenApiVersion version)
         {
             IDictionary<string, OpenApiPathItem> paths = new Dictionary<string, OpenApiPathItem>();
 
@@ -73,14 +73,14 @@ namespace Microsoft.OData.OpenAPI
             string entityPathName = singleton.CreatePathNameForSingleton();
             OpenApiPathItem pathItem = new OpenApiPathItem
             {
-                Get = singleton.CreateGetOperationForSingleton(),
+                Get = singleton.CreateGetOperationForSingleton(version),
 
-                Patch = singleton.CreatePatchOperationForSingleton(),
+                Patch = singleton.CreatePatchOperationForSingleton(version),
             };
             paths.Add(entityPathName, pathItem);
 
 
-            IDictionary<string, OpenApiPathItem> operations = CreatePathItemsWithOperations(singleton);
+            IDictionary<string, OpenApiPathItem> operations = CreatePathItemsWithOperations(singleton, version);
             foreach (var operation in operations)
             {
                 paths.Add(operation);
@@ -89,7 +89,7 @@ namespace Microsoft.OData.OpenAPI
             return paths;
         }
 
-        private IDictionary<string, OpenApiPathItem> CreatePathItemsWithOperations(IEdmNavigationSource navigationSource)
+        private IDictionary<string, OpenApiPathItem> CreatePathItemsWithOperations(IEdmNavigationSource navigationSource, OpenApiVersion version)
         {
             IDictionary<string, OpenApiPathItem> operationPathItems = new Dictionary<string, OpenApiPathItem>();
 
@@ -100,8 +100,8 @@ namespace Microsoft.OData.OpenAPI
             {
                 operations = FindOperations(navigationSource.EntityType(), collection: true);
                 foreach (var operation in operations)
-                {
-                    OpenApiPathItem openApiOperation = operation.CreatePathItem();
+                {                    
+                    OpenApiPathItem openApiOperation = operation.CreatePathItem(entitySet, version);
                     string operationPathName = operation.CreatePathItemName();
                     operationPathItems.Add("/" + navigationSource.Name + operationPathName, openApiOperation);
                 }
@@ -111,7 +111,7 @@ namespace Microsoft.OData.OpenAPI
             operations = FindOperations(navigationSource.EntityType(), collection: false);
             foreach (var operation in operations)
             {
-                OpenApiPathItem openApiOperation = operation.CreatePathItem();
+                OpenApiPathItem openApiOperation = operation.CreatePathItem(entitySet, version);
                 string operationPathName = operation.CreatePathItemName();
 
                 string temp;

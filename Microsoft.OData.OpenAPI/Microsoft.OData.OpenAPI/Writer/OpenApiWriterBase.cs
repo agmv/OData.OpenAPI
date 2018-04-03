@@ -31,12 +31,7 @@ namespace Microsoft.OData.OpenAPI
         /// Scope of the Open API element - object, array, property.
         /// </summary>
         protected readonly Stack<Scope> scopes;
-
-        /// <summary>
-        /// Number which specifies the level of indentation. Starts with 0 which means no indentation.
-        /// </summary>
-        private OpenApiWriterSettings settings;
-
+        
         /// <summary>
         /// Indentent shift value.
         /// </summary>
@@ -48,17 +43,31 @@ namespace Microsoft.OData.OpenAPI
         protected TextWriter Writer { get; }
 
         /// <summary>
+        /// What OpenAPI version is being written.
+        /// </summary>
+        public OpenApiVersion Version { get; }
+
+        /// <summary>
+        /// The name to give to the service
+        /// </summary>
+        public string ServiceName { get; }
+
+
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="OpenApiWriterBase"/> class.
         /// </summary>
         /// <param name="textWriter">The text writer.</param>
         /// <param name="settings">The writer settings.</param>
-        public OpenApiWriterBase(TextWriter textWriter, OpenApiWriterSettings settings)
+        public OpenApiWriterBase(TextWriter textWriter, OpenApiVersion version, string serviceName)
         {
             Writer = textWriter;
             Writer.NewLine = "\n";
 
-            this.scopes = new Stack<Scope>();
-            this.settings = settings;
+            this.scopes = new Stack<Scope>();            
+
+            Version = version;
+            ServiceName = serviceName;
         }
 
         /// <summary>

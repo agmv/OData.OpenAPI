@@ -70,5 +70,16 @@ namespace Microsoft.OData.OpenAPI
         /// Flush the writer.
         /// </summary>
         void Flush();
+
+        /// <summary>
+        /// The version of Open API spec being used
+        /// </summary>
+        OpenApiVersion Version { get; }
+
+        /// <summary>
+        /// The name to give to the service
+        /// </summary>
+        string ServiceName { get; }
+
     }
 }

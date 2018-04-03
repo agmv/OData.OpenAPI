@@ -47,6 +47,7 @@ namespace Microsoft.OData.OpenAPI
         /// </summary>
         public OpenApiReference Reference { get; set; }
 
+        
         /// <summary>
         /// Write Open API response to given writer.
         /// </summary>
@@ -78,14 +79,27 @@ namespace Microsoft.OData.OpenAPI
             // description
             writer.WriteRequiredProperty(OpenApiConstants.OpenApiDocDescription, Description);
 
-            // headers
-            writer.WriteOptionalDictionary(OpenApiConstants.OpenApiDocHeaders, Headers);
+            if (writer.Version == OpenApiVersion.version3)
+            {
+                // headers
+                writer.WriteOptionalDictionary(OpenApiConstants.OpenApiDocHeaders, Headers);
 
-            // content
-            writer.WriteOptionalDictionary(OpenApiConstants.OpenApiDocContent, Content);
+                // content
+                writer.WriteOptionalDictionary(OpenApiConstants.OpenApiDocContent, Content);
 
-            // headers
-            writer.WriteOptionalDictionary(OpenApiConstants.OpenApiDocLinks, Links);
+                // headers
+                writer.WriteOptionalDictionary(OpenApiConstants.OpenApiDocLinks, Links);
+            }
+            else {
+                if (Content != null && Content["application/json"] != null)
+                {
+                    // schema
+                    writer.WriteOptionalObject(OpenApiConstants.OpenApiDocSchema, Content["application/json"].Schema);
+                }
+
+                // headers
+                writer.WriteOptionalDictionary(OpenApiConstants.OpenApiDocHeaders, Headers);
+            }
 
             // Extensions
             writer.WriteDictionary(Extensions);

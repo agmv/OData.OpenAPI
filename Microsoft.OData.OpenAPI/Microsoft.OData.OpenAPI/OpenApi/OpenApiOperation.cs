@@ -110,14 +110,20 @@ namespace Microsoft.OData.OpenAPI
             // parameters
             writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocParameters, Parameters);
 
-            // requestBody
-            writer.WriteOptionalObject(OpenApiConstants.OpenApiDocRequestBody, RequestBody);
+            if (writer.Version == OpenApiVersion.version3)
+            {
+                // requestBody
+                writer.WriteOptionalObject(OpenApiConstants.OpenApiDocRequestBody, RequestBody);
+            }
 
             // responses
             writer.WriteOptionalObject(OpenApiConstants.OpenApiDocResponses, Responses);
 
-            // callbacks
-            writer.WriteOptionalDictionary(OpenApiConstants.OpenApiDocCallbacks, Callbacks);
+            if (writer.Version == OpenApiVersion.version3)
+            {
+                // callbacks
+                writer.WriteOptionalDictionary(OpenApiConstants.OpenApiDocCallbacks, Callbacks);
+            }
 
             // deprecated
             writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocDeprecated, Deprecated);
@@ -125,8 +131,11 @@ namespace Microsoft.OData.OpenAPI
             // security
             writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocSecurity, Security);
 
-            // servers
-            writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocServers, Servers);
+            if (writer.Version == OpenApiVersion.version3)
+            {
+                // servers
+                writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocServers, Servers);
+            }
 
             // specification extensions
             writer.WriteDictionary(Extensions);

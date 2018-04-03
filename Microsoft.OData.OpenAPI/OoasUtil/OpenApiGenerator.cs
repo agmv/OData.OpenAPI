@@ -51,7 +51,7 @@ namespace OoasUtil
 
                 using (FileStream fs = File.Create(Output))
                 {
-                    edmModel.WriteOpenApi(fs, Target, settings);
+                    edmModel.WriteOpenApi(fs, Target, OpenApiVersion.version3, settings);
                     fs.Flush();
                 }
             }

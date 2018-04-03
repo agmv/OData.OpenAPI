@@ -264,8 +264,11 @@ namespace Microsoft.OData.OpenAPI
             // AllOf
             writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocAllOf, AllOf);
 
-            // OneOf
-            writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocOneOf, OneOf);
+            if (writer.Version == OpenApiVersion.version3)
+            {
+                // OneOf
+                writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocOneOf, OneOf);
+            }
 
             // AnyOf
             writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocAnyOf, AnyOf);
@@ -309,8 +312,11 @@ namespace Microsoft.OData.OpenAPI
             // Default
             writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocDefault, Default);
 
-            // nullable
-            writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocNullable, Nullable);
+            if (writer.Version == OpenApiVersion.version3)
+            {
+                // nullable
+                writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocNullable, Nullable);
+            }
 
             // Discriminator
             writer.WriteOptionalObject(OpenApiConstants.OpenApiDocDiscriminator, Discriminator);

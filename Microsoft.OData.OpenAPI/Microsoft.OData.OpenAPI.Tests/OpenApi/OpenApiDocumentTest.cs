@@ -41,7 +41,7 @@ namespace Microsoft.OData.OpenAPI.Tests
 
             var builder = new StringBuilder();
             StringWriter sw = new StringWriter(builder);
-            IOpenApiWriter writer = new OpenApiJsonWriter(sw, new OpenApiWriterSettings());
+            IOpenApiWriter writer = new OpenApiJsonWriter(sw);
             doc.Write(writer);
 
             sw.Flush();
@@ -56,7 +56,7 @@ namespace Microsoft.OData.OpenAPI.Tests
 
             var builder = new StringBuilder();
             StringWriter sw = new StringWriter(builder);
-            IOpenApiWriter writer = new OpenApiYamlWriter(sw, new OpenApiWriterSettings());
+            IOpenApiWriter writer = new OpenApiYamlWriter(sw);
             doc.Write(writer);
 
             sw.Flush();

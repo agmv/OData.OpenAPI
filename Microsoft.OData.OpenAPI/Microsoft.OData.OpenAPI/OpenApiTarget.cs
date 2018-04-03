@@ -12,12 +12,12 @@ namespace Microsoft.OData.OpenAPI
     public enum OpenApiTarget
     {
         /// <summary>
-        /// The target is Open API version 3.0 JSON.
+        /// The target is Open API in JSON format.
         /// </summary>
         Json,
 
         /// <summary>
-        /// The target is Open API version 3.0 YAML.
+        /// The target is Open API in YAML format.
         /// </summary>
         Yaml
     }

@@ -15,20 +15,20 @@ namespace Microsoft.OData.OpenAPI
     /// </summary>
     internal class EdmOpenApiDocumentGenerator : EdmOpenApiGenerator
     {
-        private OpenApiDocument _openApiDoc;
+        private OpenApiDocument _openApiDoc;        
         private EdmOpenApiComponentsGenerator _componentsGenerator;
-        private EdmOpenApiPathsGenerator _pathsGenerator;
+        private EdmOpenApiPathsGenerator _pathsGenerator;        
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EdmOpenApiDocumentGenerator" /> class.
         /// </summary>
         /// <param name="model">The Edm model.</param>
         /// <param name="settings">The Open Api writer settings.</param>
-        public EdmOpenApiDocumentGenerator(IEdmModel model, OpenApiWriterSettings settings)
-            : base(model, settings)
-        {
-            _componentsGenerator = new EdmOpenApiComponentsGenerator(model, settings);
-            _pathsGenerator = new EdmOpenApiPathsGenerator(model, settings);
+        public EdmOpenApiDocumentGenerator(IEdmModel model, OpenApiVersion version, OpenApiWriterSettings settings)
+            : base(model, version, settings)
+        {            
+            _componentsGenerator = new EdmOpenApiComponentsGenerator(model, version, settings);
+            _pathsGenerator = new EdmOpenApiPathsGenerator(model, version, settings);            
         }
 
         /// <summary>
@@ -36,23 +36,52 @@ namespace Microsoft.OData.OpenAPI
         /// </summary>
         /// <returns>The <see cref="OpenApiDocument"/> object.</returns>
         public virtual OpenApiDocument Generate()
-        {
+        {            
             if (_openApiDoc == null)
             {
-                _openApiDoc = new OpenApiDocument
-                {
-                    Info = CreateInfo(),
+                if (Version == OpenApiVersion.version3) {
+                    _openApiDoc = new OpenApiDocument
+                    {
+                        Info = CreateInfo(),
 
-                    Servers = CreateServers(),
+                        Servers = CreateServers(),
 
-                    Paths = CreatePaths(),
+                        Paths = CreatePaths(),
 
-                    Components = CreateComponents(),
+                        Components = CreateComponents(),
 
-                    Security = CreateSecurity(),
+                        Security = CreateSecurity(),
 
-                    Tags = CreateTags()
-                };
+                        Tags = CreateTags()                        
+                    };
+                } else {
+                    _openApiDoc = new OpenApiDocument
+                    {
+                        OpenApi = new System.Version(2, 0),
+
+                        Info = CreateInfo(),
+
+                        Host = Settings.BaseUri.Host,
+
+                        BasePath = Settings.BaseUri.AbsolutePath,
+
+                        Schemes = new string[] { Settings.BaseUri.Scheme },
+
+                        Consumes = new string[] { "application/json" },
+
+                        Produces = new string[] { "application/json" },
+
+                        Paths = CreatePaths(),
+
+                        Components = CreateComponents(),                        
+
+                        Security = CreateSecurity(),
+
+                        Tags = CreateTags()
+
+                        
+                    };
+                }
             }
 
             return _openApiDoc;
@@ -66,9 +95,10 @@ namespace Microsoft.OData.OpenAPI
         {
             return new OpenApiInfo
             {
-                Title = "OData Service for namespace " + Model.DeclaredNamespaces.FirstOrDefault(),
+                Title =  Model.DeclaredNamespaces.FirstOrDefault(),
                 Version = Settings.Version,
-                Description = "This OData service is located at " + Settings.BaseUri?.OriginalString
+                Description = "OData Service for namespace " + Model.DeclaredNamespaces.FirstOrDefault() +
+                    ". This OData service is located at " + Settings.BaseUri?.OriginalString
             };
         }
 

@@ -113,7 +113,7 @@ namespace Microsoft.OData.OpenAPI.Tests
             OpenApiWriterSettings settings = null)
         {
             MemoryStream stream = new MemoryStream();
-            model.WriteOpenApi(stream, target, settings);
+            model.WriteOpenApi(stream, target, OpenApiVersion.version3, settings);
             stream.Flush();
             stream.Position = 0;
             return new StreamReader(stream).ReadToEnd();

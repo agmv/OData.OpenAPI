@@ -21,10 +21,10 @@ namespace Microsoft.OData.OpenAPI
         /// </summary>
         /// <param name="model">The Edm model.</param>
         /// <param name="settings">The Open Api writer settings.</param>
-        public EdmOpenApiPathsGenerator(IEdmModel model, OpenApiWriterSettings settings)
-            : base(model, settings)
+        public EdmOpenApiPathsGenerator(IEdmModel model, OpenApiVersion version, OpenApiWriterSettings settings)
+            : base(model, version, settings)
         {
-            _nsGenerator = new EdmNavigationSourceGenerator(model, settings);
+            _nsGenerator = new EdmNavigationSourceGenerator(model, version, settings);
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace Microsoft.OData.OpenAPI
                                 IEdmEntitySet entitySet = element as IEdmEntitySet;
                                 if (entitySet != null)
                                 {
-                                    foreach (var item in _nsGenerator.CreatePaths(entitySet))
+                                    foreach (var item in _nsGenerator.CreatePaths(entitySet, Version))
                                     {
                                         _paths.Add(item.Key, item.Value);
                                     }
@@ -58,7 +58,7 @@ namespace Microsoft.OData.OpenAPI
                                 IEdmSingleton singleton = element as IEdmSingleton;
                                 if (singleton != null)
                                 {
-                                    foreach (var item in _nsGenerator.CreatePaths(singleton))
+                                    foreach (var item in _nsGenerator.CreatePaths(singleton, Version))
                                     {
                                         _paths.Add(item.Key, item.Value);
                                     }
@@ -69,7 +69,7 @@ namespace Microsoft.OData.OpenAPI
                                 IEdmFunctionImport functionImport = element as IEdmFunctionImport;
                                 if (functionImport != null)
                                 {
-                                    var functionImportPathItem = functionImport.CreatePathItem();
+                                    var functionImportPathItem = functionImport.CreatePathItem(Version);
 
                                     _paths.Add(functionImport.CreatePathItemName(), functionImportPathItem);
                                 }
@@ -79,8 +79,8 @@ namespace Microsoft.OData.OpenAPI
                                 IEdmActionImport actionImport = element as IEdmActionImport;
                                 if (actionImport != null)
                                 {
-                                    var functionImportPathItem = actionImport.CreatePathItem();
-                                    _paths.Add(actionImport.CreatePathItemName(), functionImportPathItem);
+                                    var actionImportPathItem = actionImport.CreatePathItem(Version);
+                                    _paths.Add(actionImport.CreatePathItemName(), actionImportPathItem);
                                 }
                                 break;
                         }

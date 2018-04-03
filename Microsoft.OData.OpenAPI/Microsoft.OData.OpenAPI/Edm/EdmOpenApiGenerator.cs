@@ -23,15 +23,19 @@ namespace Microsoft.OData.OpenAPI
         /// </summary>
         public OpenApiWriterSettings Settings { get; }
 
+        public OpenApiVersion Version { get; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="EdmOpenApiGenerator" /> class.
         /// </summary>
         /// <param name="model">The Edm model.</param>
         /// <param name="settings">The Open Api writer settings.</param>
-        protected EdmOpenApiGenerator(IEdmModel model, OpenApiWriterSettings settings)
+        protected EdmOpenApiGenerator(IEdmModel model, OpenApiVersion version, OpenApiWriterSettings settings)
         {
             Model = model ?? throw Error.ArgumentNull(nameof(model));
             Settings = settings ?? throw Error.ArgumentNull(nameof(settings));
+            Version = version;
         }
+        
     }
 }

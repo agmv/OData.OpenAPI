@@ -8,7 +8,7 @@ namespace Microsoft.OData.OpenAPI
 {
     internal abstract class OpenApiElement : IOpenApiElement
     {
-        public virtual void Write(IOpenApiWriter writer)
+        public virtual void Write(OpenApiVersion version, IOpenApiWriter writer)
         {
             // nothing here
         }

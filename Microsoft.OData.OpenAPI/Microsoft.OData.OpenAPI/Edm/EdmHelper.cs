@@ -42,5 +42,20 @@ namespace Microsoft.OData.OpenAPI
                     return OpenApiTypeKind.None.GetDisplayName();
             }
         }
+
+        public static OpenApiReference ReferenceToEntity(OpenApiVersion version, string to, bool referenced = false)
+        {
+            return new OpenApiReference((version == OpenApiVersion.version3 ? "#/components/schemas/" : "#/definitions/") + (referenced ? to + "Ref" : to));
+        }
+
+        public static OpenApiReference ReferenceToParameter(OpenApiVersion version, string to)
+        {
+            return new OpenApiReference((version == OpenApiVersion.version3 ? "#/components/parameters/" : "#/parameters/") + to);
+        }
+
+        public static OpenApiReference ReferenceToResponse(OpenApiVersion version, string to)
+        {
+            return new OpenApiReference((version == OpenApiVersion.version3 ? "#/components/responses/" : "#/responses/") + to);
+        }
     }
 }

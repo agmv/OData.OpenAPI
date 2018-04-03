@@ -16,38 +16,40 @@ namespace Microsoft.OData.OpenAPI
     /// </summary>
     internal static class EdmNavigationSourceExtensions
     {
-        public static OpenApiOperation CreateGetOperationForEntitySet(this IEdmEntitySet entitySet)
+        public static OpenApiOperation CreateGetOperationForEntitySet(this IEdmEntitySet entitySet, OpenApiVersion version)
         {
             OpenApiOperation operation = new OpenApiOperation
             {
                 Summary = "Get entities from " + entitySet.Name,
+                Description = "Get entities from " + entitySet.Name,
                 Tags = new List<string>
                 {
                     entitySet.Name
-                }
+                },
+                OperationId = "Get" + entitySet.Name
             };
 
             operation.Parameters = new List<OpenApiParameter>
             {
                 new OpenApiParameter
                 {
-                    Reference = new OpenApiReference("#/components/parameters/top")
+                    Reference = EdmHelper.ReferenceToParameter(version, "$top")
                 },
                 new OpenApiParameter
                 {
-                    Reference = new OpenApiReference("#/components/parameters/skip")
+                    Reference = EdmHelper.ReferenceToParameter(version, "$skip")
                 },
                 new OpenApiParameter
                 {
-                    Reference = new OpenApiReference("#/components/parameters/search")
+                    Reference = EdmHelper.ReferenceToParameter(version, "$search")
                 },
                 new OpenApiParameter
                 {
-                    Reference = new OpenApiReference("#/components/parameters/filter")
+                    Reference = EdmHelper.ReferenceToParameter(version, "$filter")
                 },
                 new OpenApiParameter
                 {
-                    Reference = new OpenApiReference("#/components/parameters/count")
+                    Reference = EdmHelper.ReferenceToParameter(version, "$count")
                 },
 
                 CreateOrderByParameter(entitySet),
@@ -77,16 +79,25 @@ namespace Microsoft.OData.OpenAPI
                                         Properties = new Dictionary<string, OpenApiSchema>
                                         {
                                             {
+                                                "@odata.count",
+                                                new OpenApiSchema
+                                                {
+                                                    Type = "integer",
+                                                    Format = "int64"
+                                                }
+                                            },
+                                            {
                                                 "value",
                                                 new OpenApiSchema
                                                 {
                                                     Type = "array",
                                                     Items = new OpenApiSchema
                                                     {
-                                                        Reference = new OpenApiReference("#/components/schemas/" + entitySet.EntityType().FullName())
+                                                        Reference = EdmHelper.ReferenceToEntity(version, entitySet.EntityType().FullName())
                                                     }
                                                 }
                                             }
+                                            
                                         }
                                     }
                                 }
@@ -96,20 +107,22 @@ namespace Microsoft.OData.OpenAPI
                 }
             };
 
-            operation.Responses.Add("default".GetResponse());
+            operation.Responses.Add("default".GetResponse(version));
 
             return operation;
         }
 
-        public static OpenApiOperation CreatePostOperationForEntitySet(this IEdmEntitySet entitySet)
+        public static OpenApiOperation CreatePostOperationForEntitySet(this IEdmEntitySet entitySet, OpenApiVersion version)
         {
             OpenApiOperation operation = new OpenApiOperation
             {
                 Summary = "Add new entity to " + entitySet.Name,
+                Description = "Add new entity to " + entitySet.Name,
                 Tags = new List<string>
                 {
                     entitySet.Name
                 },
+                OperationId = "Post" + entitySet.Name,
                 RequestBody = new OpenApiRequestBody
                 {
                     Required = true,
@@ -121,7 +134,7 @@ namespace Microsoft.OData.OpenAPI
                             {
                                 Schema = new OpenApiSchema
                                 {
-                                    Reference = new OpenApiReference("#/components/schemas/" + entitySet.EntityType().FullName())
+                                    Reference = EdmHelper.ReferenceToEntity(version,  entitySet.EntityType().FullName())
                                 }
                             }
                         }
@@ -144,7 +157,7 @@ namespace Microsoft.OData.OpenAPI
                                 {
                                     Schema = new OpenApiSchema
                                     {
-                                        Reference = new OpenApiReference("#/components/schemas/" + entitySet.EntityType().FullName())
+                                        Reference = EdmHelper.ReferenceToEntity(version, entitySet.EntityType().FullName())
                                     }
                                 }
                             }
@@ -152,7 +165,7 @@ namespace Microsoft.OData.OpenAPI
                     }
                 }
             };
-            operation.Responses.Add("default".GetResponse());
+            operation.Responses.Add("default".GetResponse(version));
 
             return operation;
         }
@@ -183,18 +196,20 @@ namespace Microsoft.OData.OpenAPI
             return "/" + singleton.Name;
         }
 
-        public static OpenApiOperation CreateGetOperationForEntity(this IEdmEntitySet entitySet)
+        public static OpenApiOperation CreateGetOperationForEntity(this IEdmEntitySet entitySet, OpenApiVersion version)
         {
             OpenApiOperation operation = new OpenApiOperation
             {
-                Summary = "Get entity from " + entitySet.Name + " by key",
+                Summary = "Get entity from " + entitySet.Name + " by Id",
+                Description = "Get entity from " + entitySet.Name + " by Id",
                 Tags = new List<string>
                 {
                     entitySet.Name
-                }
+                },
+                OperationId = "Get" + entitySet.Name + "ById"
             };
 
-            operation.Parameters = CreateKeyParameters(entitySet.EntityType());
+            operation.Parameters = CreateKeyParameters(entitySet.EntityType(), version);
 
             operation.Parameters.Add(CreateSelectParameter(entitySet));
 
@@ -215,7 +230,7 @@ namespace Microsoft.OData.OpenAPI
                                 {
                                     Schema = new OpenApiSchema
                                     {
-                                        Reference = new OpenApiReference("#/components/schemas/" + entitySet.EntityType().FullName())
+                                        Reference = EdmHelper.ReferenceToEntity(version,  entitySet.EntityType().FullName())
                                     }
                                 }
                             }
@@ -223,20 +238,22 @@ namespace Microsoft.OData.OpenAPI
                     }
                 }
             };
-            operation.Responses.Add("default".GetResponse());
+            operation.Responses.Add("default".GetResponse(version));
 
             return operation;
         }
 
-        public static OpenApiOperation CreateGetOperationForSingleton(this IEdmSingleton singleton)
+        public static OpenApiOperation CreateGetOperationForSingleton(this IEdmSingleton singleton, OpenApiVersion version)
         {
             OpenApiOperation operation = new OpenApiOperation
             {
                 Summary = "Get " + singleton.Name,
+                Description = "Get " + singleton.Name,
                 Tags = new List<string>
                 {
                     singleton.Name
-                }
+                },
+                OperationId = "Get" + singleton.Name
             };
 
             operation.Parameters = new List<OpenApiParameter>();
@@ -259,7 +276,7 @@ namespace Microsoft.OData.OpenAPI
                                 {
                                     Schema = new OpenApiSchema
                                     {
-                                        Reference = new OpenApiReference("#/components/schemas/" + singleton.EntityType().FullName())
+                                        Reference = EdmHelper.ReferenceToEntity(version, singleton.EntityType().FullName())
                                     }
                                 }
                             }
@@ -267,23 +284,25 @@ namespace Microsoft.OData.OpenAPI
                     }
                 },
             };
-            operation.Responses.Add("default".GetResponse());
+            operation.Responses.Add("default".GetResponse(version));
 
             return operation;
         }
 
-        public static OpenApiOperation CreatePatchOperationForEntity(this IEdmEntitySet entitySet)
+        public static OpenApiOperation CreatePatchOperationForEntity(this IEdmEntitySet entitySet, OpenApiVersion version)
         {
             OpenApiOperation operation = new OpenApiOperation
             {
                 Summary = "Update entity in " + entitySet.Name,
+                Description = "Update entity in " + entitySet.Name,
                 Tags = new List<string>
                 {
                     entitySet.Name
-                }
+                },
+                OperationId = "Patch" + entitySet.Name
             };
 
-            operation.Parameters = CreateKeyParameters(entitySet.EntityType());
+            operation.Parameters = CreateKeyParameters(entitySet.EntityType(), version);
 
             operation.RequestBody = new OpenApiRequestBody
             {
@@ -296,7 +315,7 @@ namespace Microsoft.OData.OpenAPI
                             {
                                 Schema = new OpenApiSchema
                                 {
-                                    Reference = new OpenApiReference("#/components/schemas/" + entitySet.EntityType().FullName())
+                                    Reference = EdmHelper.ReferenceToEntity(version, entitySet.EntityType().FullName())
                                 }
                             }
                         }
@@ -305,21 +324,23 @@ namespace Microsoft.OData.OpenAPI
 
             operation.Responses = new OpenApiResponses
             {
-                "204".GetResponse(),
-                "default".GetResponse()
+                "204".GetResponse(version),
+                "default".GetResponse(version)
             };
             return operation;
         }
 
-        public static OpenApiOperation CreatePatchOperationForSingleton(this IEdmSingleton singleton)
+        public static OpenApiOperation CreatePatchOperationForSingleton(this IEdmSingleton singleton, OpenApiVersion version)
         {
             OpenApiOperation operation = new OpenApiOperation
             {
                 Summary = "Update " + singleton.Name,
+                Description = "Update " + singleton.Name,
                 Tags = new List<string>
                 {
                     singleton.Name
-                }
+                },
+                OperationId = "Patch" + singleton.Name
             };
 
             operation.RequestBody = new OpenApiRequestBody
@@ -333,7 +354,7 @@ namespace Microsoft.OData.OpenAPI
                             {
                                 Schema = new OpenApiSchema
                                 {
-                                    Reference = new OpenApiReference("#/components/schemas/" + singleton.EntityType().FullName())
+                                    Reference = EdmHelper.ReferenceToEntity(version, singleton.EntityType().FullName())
                                 }
                             }
                         }
@@ -342,23 +363,25 @@ namespace Microsoft.OData.OpenAPI
 
             operation.Responses = new OpenApiResponses
             {
-                "204".GetResponse(),
-                "default".GetResponse()
+                "204".GetResponse(version),
+                "default".GetResponse(version)
             };
             return operation;
         }
 
-        public static OpenApiOperation CreateDeleteOperationForEntity(this IEdmEntitySet entitySet)
+        public static OpenApiOperation CreateDeleteOperationForEntity(this IEdmEntitySet entitySet, OpenApiVersion version)
         {
             OpenApiOperation operation = new OpenApiOperation
             {
                 Summary = "Delete entity from " + entitySet.Name,
+                Description = "Delete entity from " + entitySet.Name,
                 Tags = new List<string>
                 {
                     entitySet.Name
-                }
+                },
+                OperationId = "Delete" + entitySet.Name
             };
-            operation.Parameters = CreateKeyParameters(entitySet.EntityType());
+            operation.Parameters = CreateKeyParameters(entitySet.EntityType(), version);
             operation.Parameters.Add(new OpenApiParameter
             {
                 Name = "If-Match",
@@ -372,8 +395,8 @@ namespace Microsoft.OData.OpenAPI
 
             operation.Responses = new OpenApiResponses
             {
-                "204".GetResponse(),
-                "default".GetResponse()
+                "204".GetResponse(version),
+                "default".GetResponse(version)
             };
             return operation;
         }
@@ -480,13 +503,13 @@ namespace Microsoft.OData.OpenAPI
 
             foreach (var property in entityType.NavigationProperties())
             {
-                expandItems.Add(property.Name);
+                expandItems.Add(property.Name + "Expanded"); // avoid creating recursive definitions
             }
 
             return expandItems;
         }
 
-        public static IList<OpenApiParameter> CreateKeyParameters(this IEdmEntityType entityType)
+        public static IList<OpenApiParameter> CreateKeyParameters(this IEdmEntityType entityType, OpenApiVersion version)
         {
             IList<OpenApiParameter> parameters = new List<OpenApiParameter>();
 
@@ -499,7 +522,7 @@ namespace Microsoft.OData.OpenAPI
                     In = ParameterLocation.path,
                     Required = true,
                     Description = "key: " + keyProperty.Name,
-                    Schema = keyProperty.Type.CreateSchema()
+                    Schema = keyProperty.Type.CreateSchema(version)
                 };
 
                 parameters.Add(parameter);

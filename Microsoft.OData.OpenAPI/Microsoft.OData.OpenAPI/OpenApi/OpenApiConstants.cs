@@ -180,6 +180,17 @@ namespace Microsoft.OData.OpenAPI
 
         public const string OpenApiDocContentType = "contentType";
 
+
+        // 2.0 consts
+        public const string OpenApiDocSwagger = "swagger";
+        public const string OpenApiDocHost = "host";
+        public const string OpenApiDocBasePath = "basePath";
+        public const string OpenApiDocSchemes = "schemes";
+        public const string OpenApiDocConsumes = "consumes";
+        public const string OpenApiDocProduces = "produces";
+        public const string OpenApiDocDefinitions = "definitions";
+        public const string OpenApiDocSecurityDefinitions = "securityDefinitions";        
+
         public const string OpenApiDocGet = "get";
         public const string OpenApiDocPut = "put";
         public const string OpenApiDocPost = "post";

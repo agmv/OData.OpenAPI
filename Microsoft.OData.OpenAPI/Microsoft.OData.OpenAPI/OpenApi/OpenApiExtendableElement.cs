@@ -46,7 +46,7 @@ namespace Microsoft.OData.OpenAPI
         /// Write specification extensions object.
         /// </summary>
         /// <param name="writer">The Open API Writer.</param>
-        public override void Write(IOpenApiWriter writer)
+        public override void Write(OpenApiVersion version, IOpenApiWriter writer)
         {
             if (writer == null)
             {

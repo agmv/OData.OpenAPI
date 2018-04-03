@@ -1,16 +1,22 @@
 ﻿//---------------------------------------------------------------------
-// <copyright file="IOpenApiElement.cs" company="Microsoft">
+// <copyright file="OpenApiParameter.cs" company="Microsoft">
 //      Copyright (C) Microsoft Corporation. All rights reserved. See License.txt in the project root for license information.
 // </copyright>
 //---------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.OData.OpenAPI.Properties;
+
 namespace Microsoft.OData.OpenAPI
-{
+{    
+
     /// <summary>
-    /// Represents an Open API document element.
+    /// Definitions Object.
     /// </summary>
-    internal interface IOpenApiElement
+    internal class OpenApiDefinitions : OpenApiDictionaryExtensibleOfT<OpenApiSchema>
     {
-        
+       
     }
 }

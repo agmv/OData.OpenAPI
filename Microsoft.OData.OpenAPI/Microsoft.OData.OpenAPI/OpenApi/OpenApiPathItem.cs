@@ -114,11 +114,14 @@ namespace Microsoft.OData.OpenAPI
             // { for json, empty for YAML
             writer.WriteStartObject();
 
-            // summary
-            writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocSummary, Summary);
+            if (writer.Version == OpenApiVersion.version3)
+            {
+                // summary
+                writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocSummary, Summary);
 
-            // description
-            writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocDescription, Description);
+                // description
+                writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocDescription, Description);
+            }
 
             // get
             writer.WriteOptionalObject(OpenApiConstants.OpenApiDocGet, Get);
@@ -141,11 +144,14 @@ namespace Microsoft.OData.OpenAPI
             // patch
             writer.WriteOptionalObject(OpenApiConstants.OpenApiDocPatch, Patch);
 
-            // trace
-            writer.WriteOptionalObject(OpenApiConstants.OpenApiDocTrace, Trace);
+            if (writer.Version == OpenApiVersion.version3)
+            {
+                // trace
+                writer.WriteOptionalObject(OpenApiConstants.OpenApiDocTrace, Trace);
 
-            // servers
-            writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocServers, Servers);
+                // servers
+                writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocServers, Servers);
+            }
 
             // parameters
             writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocParameters, Parameters);

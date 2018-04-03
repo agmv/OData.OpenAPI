@@ -15,14 +15,15 @@ namespace Microsoft.OData.OpenAPI
     internal class EdmOpenApiComponentsGenerator : EdmOpenApiGenerator
     {
         private OpenApiComponents _components;
+        private IDictionary<string, OpenApiSchema> _schemas;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EdmOpenApiComponentsGenerator" /> class.
         /// </summary>
         /// <param name="model">The Edm model.</param>
         /// <param name="settings">The Open Api writer settings.</param>
-        public EdmOpenApiComponentsGenerator(IEdmModel model, OpenApiWriterSettings settings)
-            : base(model, settings)
+        public EdmOpenApiComponentsGenerator(IEdmModel model, OpenApiVersion version, OpenApiWriterSettings settings)
+            : base(model, version, settings)
         {
         }
 
@@ -34,9 +35,12 @@ namespace Microsoft.OData.OpenAPI
         {
             if (_components == null)
             {
+                _schemas = new Dictionary<string, OpenApiSchema>();
+                VisitSchemas();
+
                 _components = new OpenApiComponents
                 {
-                    Schemas = VisitSchemas(),
+                    Schemas = _schemas,
                     Parameters = VisitParameters(),
                     Responses = VisitResponses()
                 };
@@ -45,9 +49,8 @@ namespace Microsoft.OData.OpenAPI
             return _components;
         }
 
-        private IDictionary<string, OpenApiSchema> VisitSchemas()
+        private void VisitSchemas()
         {
-            IDictionary<string, OpenApiSchema> schemas = new Dictionary<string, OpenApiSchema>();
 
             foreach (var element in Model.SchemaElements)
             {
@@ -56,15 +59,13 @@ namespace Microsoft.OData.OpenAPI
                     case EdmSchemaElementKind.TypeDefinition:
                         {
                             IEdmType reference = (IEdmType)element;
-                            schemas.Add(reference.FullTypeName(), VisitSchemaType(reference));
+                            _schemas.Add(reference.FullTypeName(), VisitSchemaType(reference));
                         }
-                        break;
+                        break;                    
                 }
             }
 
-            AppendODataErrors(schemas);
-
-            return schemas;
+            AppendODataErrors(_schemas);            
         }
 
 
@@ -95,6 +96,7 @@ namespace Microsoft.OData.OpenAPI
 
             foreach (IEdmEnumMember member in enumType.Members)
             {
+                
                 schema.Enum.Add(member.Name);
             }
 
@@ -102,17 +104,23 @@ namespace Microsoft.OData.OpenAPI
             return schema;
         }
 
-        private OpenApiSchema VisitStructuredType(IEdmStructuredType structuredType, bool processBase)
+        private OpenApiSchema VisitStructuredType(IEdmStructuredType structuredType, bool processBase, bool isRef = false)
         {
             if (processBase && structuredType.BaseType != null)
             {
+                IEdmStructuredType refEntity = structuredType.BaseType;
+                if (refEntity != null && !_schemas.ContainsKey(refEntity.FullTypeName() + "Ref"))
+                {
+                    _schemas.Add(refEntity.FullTypeName() + "Ref", VisitStructuredType(refEntity, true, true));
+                }
+
                 return new OpenApiSchema
                 {
                     AllOf = new List<OpenApiSchema>
                     {
                         new OpenApiSchema
                         {
-                            Reference = new OpenApiReference("#/components/schemas/" + structuredType.BaseType.FullTypeName())
+                            Reference = EdmHelper.ReferenceToEntity(Version, structuredType.BaseType.FullTypeName(), structuredType.BaseType.TypeKind != EdmTypeKind.Enum)
                         },
 
                         VisitStructuredType(structuredType, false)
@@ -125,27 +133,44 @@ namespace Microsoft.OData.OpenAPI
                 {
                     Title = (structuredType as IEdmSchemaElement).Name,
                     Type = "object",
-                    Properties = VisitStructuredTypeProperties(structuredType)
+                    Properties = VisitStructuredTypeProperties(structuredType, isRef)
                 };
             }
         }
 
-        private IDictionary<string, OpenApiSchema> VisitStructuredTypeProperties(IEdmStructuredType structuredType)
+        private IDictionary<string, OpenApiSchema> VisitStructuredTypeProperties(IEdmStructuredType structuredType, bool isRef)
         {
             IDictionary<string, OpenApiSchema> properties = new Dictionary<string, OpenApiSchema>();
 
             foreach (var property in structuredType.DeclaredStructuralProperties())
             {
-                OpenApiSchema propertySchema = VisitTypeReference(property.Type);
-                properties.Add(property.Name, propertySchema);
+                if (!isRef || structuredType.FullTypeName() != property.Type.FullName())
+                {
+                    OpenApiSchema propertySchema = VisitTypeReference(property.Type);
+                    properties.Add(property.Name, propertySchema);
+
+                    IEdmStructuredType refEntity = property.Type.IsCollection() ? property.Type.AsCollection().ElementType().ToStructuredType() : property.Type.ToStructuredType();
+                    if (refEntity != null && !_schemas.ContainsKey(refEntity.FullTypeName() + "Ref"))
+                    {
+                        _schemas.Add(refEntity.FullTypeName() + "Ref", VisitStructuredType(refEntity, true, true));
+                    }
+                }
             }
 
-            foreach (var property in structuredType.DeclaredNavigationProperties())
+            if (!isRef) // Ref elements do not container navigation properties to avoid recursion
             {
-                OpenApiSchema propertySchema = VisitTypeReference(property.Type);
-                properties.Add(property.Name, propertySchema);
-            }
+                foreach (var property in structuredType.DeclaredNavigationProperties())
+                {
+                    OpenApiSchema propertySchema = VisitTypeReference(property.Type);
+                    properties.Add(property.Name, propertySchema);
 
+                    IEdmStructuredType refEntity = property.Type.IsCollection() ? property.Type.AsCollection().ElementType().ToStructuredType() : property.Type.ToStructuredType();
+                    if (refEntity != null && !_schemas.ContainsKey(refEntity.FullTypeName() + "Ref"))
+                    {
+                        _schemas.Add(refEntity.FullTypeName() + "Ref", VisitStructuredType(refEntity, true, true));
+                    }
+                }
+            }
             return properties;
         }
 
@@ -163,12 +188,14 @@ namespace Microsoft.OData.OpenAPI
                 case EdmTypeKind.Complex:
                 case EdmTypeKind.Entity:
                 case EdmTypeKind.EntityReference:
+                    schema.Reference = EdmHelper.ReferenceToEntity(Version, reference.Definition.FullTypeName(), true);
+                    break;
                 case EdmTypeKind.Enum:
-                    schema.Reference = new OpenApiReference("#/components/schemas/" + reference.Definition.FullTypeName());
+                    schema.Reference = EdmHelper.ReferenceToEntity(Version, reference.Definition.FullTypeName(), false);
                     break;
 
                 case EdmTypeKind.Primitive:
-                    if (reference.IsInt64())
+                    if (reference.IsInt64() && Version == OpenApiVersion.version3)
                     {
                         schema.OneOf = new List<OpenApiSchema>
                         {
@@ -180,15 +207,30 @@ namespace Microsoft.OData.OpenAPI
                             {
                                 Type = "string"
                             }
-                        };
-                        schema.Nullable = reference.IsNullable ? (bool?)true : null;
+                        };                        
                         schema.Format = "int64";
                     }
-                    else
+                    else if (reference.IsDouble() && Version == OpenApiVersion.version3)
                     {
-                        schema.Type = reference.AsPrimitive().GetOpenApiDataType().GetCommonName();
-                        schema.Nullable = reference.IsNullable ? (bool?)true : null;
+                        schema.OneOf = new List<OpenApiSchema>
+                        {
+                            new OpenApiSchema
+                            {
+                                Type = "number"
+                            },
+                            new OpenApiSchema
+                            {
+                                Type = "string"
+                            }
+                        };
+                        schema.Format = "double";
                     }
+                    else
+                    {                       
+                        schema.Type = reference.AsPrimitive().GetOpenApiDataType().GetTypeName();
+                        schema.Format = reference.AsPrimitive().GetOpenApiDataType().GetFormat();
+                    }
+                    schema.Nullable = reference.IsNullable ? (bool?)true : null;
                     break;
 
                 case EdmTypeKind.TypeDefinition:
@@ -206,11 +248,11 @@ namespace Microsoft.OData.OpenAPI
         {
             return new Dictionary<string, OpenApiParameter>
             {
-                { "top", VisitTop() },
-                { "skip", VisitSkip() },
-                { "count", VisitCount() },
-                { "filter", VisitFilter() },
-                { "search", VisitSearch() },
+                { "$top", VisitTop() },
+                { "$skip", VisitSkip() },
+                { "$count", VisitCount() },
+                { "$filter", VisitFilter() },
+                { "$search", VisitSearch() },
             };
         }
 
@@ -305,7 +347,7 @@ namespace Microsoft.OData.OpenAPI
                         "error",
                         new OpenApiSchema
                         {
-                            Reference = new OpenApiReference("#/components/schemas/odata.error.main")
+                            Reference = EdmHelper.ReferenceToEntity(Version, "odata.error.main")
                         }
                     }
                 }
@@ -336,7 +378,7 @@ namespace Microsoft.OData.OpenAPI
                             Type = "array",
                             Items = new OpenApiSchema
                             {
-                                Reference = new OpenApiReference("#/components/schemas/odata.error.detail")
+                                Reference = EdmHelper.ReferenceToEntity(Version, "odata.error.detail")
                             }
                         }
                     },
@@ -393,12 +435,14 @@ namespace Microsoft.OData.OpenAPI
                         {
                             Schema = new OpenApiSchema
                             {
-                                Reference = new OpenApiReference("#/components/schemas/odata.error")
+                                Reference = EdmHelper.ReferenceToEntity(Version, "odata.error")
                             }
                         }
                     }
                 }
             };
-        }
+        }        
+
     }
+    
 }
