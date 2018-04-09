@@ -4,6 +4,8 @@
 // </copyright>
 //---------------------------------------------------------------------
 
+using System.Collections.Generic;
+
 namespace Microsoft.OData.OpenAPI
 {
     /// <summary>
@@ -74,12 +76,7 @@ namespace Microsoft.OData.OpenAPI
         /// <summary>
         /// The version of Open API spec being used
         /// </summary>
-        OpenApiVersion Version { get; }
-
-        /// <summary>
-        /// The name to give to the service
-        /// </summary>
-        string ServiceName { get; }
-
+        OpenApiWriterSettings Settings { get; }
+        
     }
 }

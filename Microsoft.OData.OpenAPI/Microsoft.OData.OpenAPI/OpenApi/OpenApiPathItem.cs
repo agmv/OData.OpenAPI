@@ -114,7 +114,7 @@ namespace Microsoft.OData.OpenAPI
             // { for json, empty for YAML
             writer.WriteStartObject();
 
-            if (writer.Version == OpenApiVersion.version3)
+            if (writer.Settings.OpenApiVersion == OpenApiVersion.version3)
             {
                 // summary
                 writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocSummary, Summary);
@@ -144,7 +144,7 @@ namespace Microsoft.OData.OpenAPI
             // patch
             writer.WriteOptionalObject(OpenApiConstants.OpenApiDocPatch, Patch);
 
-            if (writer.Version == OpenApiVersion.version3)
+            if (writer.Settings.OpenApiVersion == OpenApiVersion.version3)
             {
                 // trace
                 writer.WriteOptionalObject(OpenApiConstants.OpenApiDocTrace, Trace);

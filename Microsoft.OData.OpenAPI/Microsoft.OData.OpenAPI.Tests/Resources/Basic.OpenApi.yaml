@@ -1,7 +1,7 @@
 ﻿openapi: 3.0.0
 info:
-  title: OData Service for namespace DefaultNs
-  description: This OData service is located at http://localhost
+  title: DefaultNs
+  description: OData Service for namespace DefaultNs. This OData service is located at http://localhost
   version: 1.0.1
 servers:
   - url: http://localhost

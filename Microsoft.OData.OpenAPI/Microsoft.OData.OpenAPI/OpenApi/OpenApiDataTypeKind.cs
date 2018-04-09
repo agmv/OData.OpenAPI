@@ -56,7 +56,7 @@ namespace Microsoft.OData.OpenAPI
         /// <summary>
         /// Binary
         /// </summary>
-        [OpenApiDataTypeMetadata(CommonName = "binary", Type = "string", Format = "binary", Comments = "any sequence of octets")]
+        [OpenApiDataTypeMetadata(CommonName = "binary", Type = "string", Format = "base64url", Comments = "any sequence of octets")]
         Binary,
 
         /// <summary>

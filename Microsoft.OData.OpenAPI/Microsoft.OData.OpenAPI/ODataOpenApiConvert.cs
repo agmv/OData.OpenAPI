@@ -10,14 +10,14 @@ namespace Microsoft.OData.OpenAPI
 {
     internal static class ODataOpenApiConvert
     {
-        public static OpenApiDocument ConvertTo(this IEdmModel model, OpenApiVersion openApiVersion = OpenApiVersion.version3)
+        public static OpenApiDocument ConvertTo(this IEdmModel model)
         {
-            return model.ConvertTo(openApiVersion, new OpenApiWriterSettings());
+            return model.ConvertTo(new OpenApiWriterSettings());
         }
 
-        public static OpenApiDocument ConvertTo(this IEdmModel model, OpenApiVersion openApiVersion, OpenApiWriterSettings settings)
+        public static OpenApiDocument ConvertTo(this IEdmModel model, OpenApiWriterSettings settings)
         {
-            return new EdmOpenApiDocumentGenerator(model, openApiVersion, settings).Generate();
+            return new EdmOpenApiDocumentGenerator(model, settings).Generate();
         }
     }
 }

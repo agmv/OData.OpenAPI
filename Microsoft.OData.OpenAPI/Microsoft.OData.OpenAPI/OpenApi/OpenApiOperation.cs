@@ -110,7 +110,7 @@ namespace Microsoft.OData.OpenAPI
             // parameters
             writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocParameters, Parameters);
 
-            if (writer.Version == OpenApiVersion.version3)
+            if (writer.Settings.OpenApiVersion == OpenApiVersion.version3)
             {
                 // requestBody
                 writer.WriteOptionalObject(OpenApiConstants.OpenApiDocRequestBody, RequestBody);
@@ -119,7 +119,7 @@ namespace Microsoft.OData.OpenAPI
             // responses
             writer.WriteOptionalObject(OpenApiConstants.OpenApiDocResponses, Responses);
 
-            if (writer.Version == OpenApiVersion.version3)
+            if (writer.Settings.OpenApiVersion == OpenApiVersion.version3)
             {
                 // callbacks
                 writer.WriteOptionalDictionary(OpenApiConstants.OpenApiDocCallbacks, Callbacks);
@@ -131,7 +131,7 @@ namespace Microsoft.OData.OpenAPI
             // security
             writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocSecurity, Security);
 
-            if (writer.Version == OpenApiVersion.version3)
+            if (writer.Settings.OpenApiVersion == OpenApiVersion.version3)
             {
                 // servers
                 writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocServers, Servers);

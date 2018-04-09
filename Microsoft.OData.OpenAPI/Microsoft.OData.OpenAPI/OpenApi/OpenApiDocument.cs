@@ -86,12 +86,7 @@ namespace Microsoft.OData.OpenAPI
         /// <summary>
         /// An array of MIME types the API can produce.
         /// </summary>
-        public IList<string> Produces { get; set; }
-
-
-        public IList<OpenApiSchema> Definitions { get; set; }
-
-        public IList<OpenApiParameter> Parameters{ get; set; }
+        public IList<string> Produces { get; set; }        
         
 
         /// <summary>
@@ -139,7 +134,7 @@ namespace Microsoft.OData.OpenAPI
             // { for json, empty for YAML
             writer.WriteStartObject();
 
-            if (writer.Version == OpenApiVersion.version3)
+            if (writer.Settings.OpenApiVersion == OpenApiVersion.version3)
             {
                 // openapi:3.0.0
                 writer.WriteRequiredProperty(OpenApiConstants.OpenApiDocOpenApi, OpenApi.ToString());
@@ -190,6 +185,9 @@ namespace Microsoft.OData.OpenAPI
                 // produces
                 writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocProduces, Produces);
 
+                // paths
+                writer.WriteRequiredObject(OpenApiConstants.OpenApiDocPaths, Paths);
+                
                 // definitions
                 writer.WriteOptionalDictionary(OpenApiConstants.OpenApiDocDefinitions, Components.Schemas);
 
@@ -199,8 +197,14 @@ namespace Microsoft.OData.OpenAPI
                 // responses
                 writer.WriteOptionalDictionary(OpenApiConstants.OpenApiDocResponses, Components.Responses);
 
-                // paths
-                writer.WriteRequiredObject(OpenApiConstants.OpenApiDocPaths, Paths);
+                // security
+                writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocSecurity, Security);
+
+                // tags
+                writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocTags, Tags);
+
+                // external docs
+                writer.WriteOptionalObject(OpenApiConstants.OpenApiDocExternalDocs, ExternalDoc);
             }
 
             // } for json, empty for YAML

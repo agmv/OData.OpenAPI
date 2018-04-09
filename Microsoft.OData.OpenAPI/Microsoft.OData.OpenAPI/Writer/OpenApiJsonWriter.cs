@@ -18,7 +18,7 @@ namespace Microsoft.OData.OpenAPI
         /// </summary>
         /// <param name="textWriter">The text writer.</param>
         public OpenApiJsonWriter(TextWriter textWriter)
-            : this(textWriter, OpenApiVersion.version3, null)
+            : this(textWriter, null)
         {
         }
 
@@ -27,8 +27,8 @@ namespace Microsoft.OData.OpenAPI
         /// </summary>
         /// <param name="textWriter">The text writer.</param>
         /// <param name="settings">The writer settings.</param>
-        public OpenApiJsonWriter(TextWriter textWriter, OpenApiVersion version, string serviceName)
-            : base(textWriter, version, serviceName)
+        public OpenApiJsonWriter(TextWriter textWriter, OpenApiWriterSettings settings)
+            : base(textWriter, settings)
         {
         }
 

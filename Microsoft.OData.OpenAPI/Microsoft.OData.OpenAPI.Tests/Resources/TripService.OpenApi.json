@@ -1,8 +1,8 @@
 ﻿{
   "openapi": "3.0.0",
   "info": {
-    "title": "OData Service for namespace Microsoft.OData.Service.Sample.TrippinInMemory.Models",
-    "description": "This OData service is located at http://services.odata.org/TrippinRESTierService/",
+    "title": "Microsoft.OData.Service.Sample.TrippinInMemory.Models",
+    "description": "OData Service for namespace Microsoft.OData.Service.Sample.TrippinInMemory.Models. This OData service is located at http://services.odata.org/TrippinRESTierService/",
     "version": "1.0.1"
   },
   "servers": [

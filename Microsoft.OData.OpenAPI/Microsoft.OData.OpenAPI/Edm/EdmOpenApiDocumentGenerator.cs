@@ -24,11 +24,11 @@ namespace Microsoft.OData.OpenAPI
         /// </summary>
         /// <param name="model">The Edm model.</param>
         /// <param name="settings">The Open Api writer settings.</param>
-        public EdmOpenApiDocumentGenerator(IEdmModel model, OpenApiVersion version, OpenApiWriterSettings settings)
-            : base(model, version, settings)
+        public EdmOpenApiDocumentGenerator(IEdmModel model, OpenApiWriterSettings settings)
+            : base(model, settings)
         {            
-            _componentsGenerator = new EdmOpenApiComponentsGenerator(model, version, settings);
-            _pathsGenerator = new EdmOpenApiPathsGenerator(model, version, settings);            
+            _componentsGenerator = new EdmOpenApiComponentsGenerator(model, settings);
+            _pathsGenerator = new EdmOpenApiPathsGenerator(model, settings);
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.OData.OpenAPI
         {            
             if (_openApiDoc == null)
             {
-                if (Version == OpenApiVersion.version3) {
+                if (Settings.OpenApiVersion == OpenApiVersion.version3) {
                     _openApiDoc = new OpenApiDocument
                     {
                         Info = CreateInfo(),
@@ -78,8 +78,6 @@ namespace Microsoft.OData.OpenAPI
                         Security = CreateSecurity(),
 
                         Tags = CreateTags()
-
-                        
                     };
                 }
             }
@@ -153,11 +151,12 @@ namespace Microsoft.OData.OpenAPI
             IList<OpenApiTag> tags = new List<OpenApiTag>();
             if (Model.EntityContainer != null)
             {
-                foreach (IEdmEntitySet entitySet in Model.EntityContainer.EntitySets())
+                foreach (IEdmEntitySet entitySet in Model.EntityContainer.EntitySets().Where(s => Settings.IncludeInOutput(s.Name)))
                 {
                     tags.Add(new OpenApiTag
                     {
-                        Name = entitySet.Name
+                        Name = entitySet.Name,
+                        Description = "Operations about " + entitySet.Name
                     });
                 }
             }

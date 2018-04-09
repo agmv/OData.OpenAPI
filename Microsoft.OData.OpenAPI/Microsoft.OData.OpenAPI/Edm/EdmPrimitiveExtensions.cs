@@ -36,6 +36,7 @@ namespace Microsoft.OData.OpenAPI
             { EdmPrimitiveTypeKind.Date, OpenApiDataTypeKind.DateTime },
             { EdmPrimitiveTypeKind.TimeOfDay, OpenApiDataTypeKind.DateTime },
 
+            // TODO: These types must map to a structured type.
             { EdmPrimitiveTypeKind.Geography, OpenApiDataTypeKind.String },
             { EdmPrimitiveTypeKind.GeographyPoint, OpenApiDataTypeKind.String },
             { EdmPrimitiveTypeKind.GeographyLineString, OpenApiDataTypeKind.String },

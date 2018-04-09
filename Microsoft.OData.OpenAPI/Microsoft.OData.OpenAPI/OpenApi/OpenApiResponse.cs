@@ -79,7 +79,7 @@ namespace Microsoft.OData.OpenAPI
             // description
             writer.WriteRequiredProperty(OpenApiConstants.OpenApiDocDescription, Description);
 
-            if (writer.Version == OpenApiVersion.version3)
+            if (writer.Settings.OpenApiVersion == OpenApiVersion.version3)
             {
                 // headers
                 writer.WriteOptionalDictionary(OpenApiConstants.OpenApiDocHeaders, Headers);

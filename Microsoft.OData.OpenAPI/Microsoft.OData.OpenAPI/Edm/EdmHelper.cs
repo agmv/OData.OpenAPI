@@ -6,6 +6,7 @@
 
 using Microsoft.OData.Edm;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace Microsoft.OData.OpenAPI
 {
@@ -43,9 +44,20 @@ namespace Microsoft.OData.OpenAPI
             }
         }
 
-        public static OpenApiReference ReferenceToEntity(OpenApiVersion version, string to, bool referenced = false)
+        public static IList<string> ReferencedEntities { get; set; } = new List<string> { };
+        
+        public static string Expanded = "Expanded";
+
+        public static OpenApiReference ReferenceToEntity(OpenApiVersion version, string to, bool isPathNavigation = false, bool expanded = false)
         {
-            return new OpenApiReference((version == OpenApiVersion.version3 ? "#/components/schemas/" : "#/definitions/") + (referenced ? to + "Ref" : to));
+            if (!ReferencedEntities.Contains(to) && isPathNavigation)
+                ReferencedEntities.Add(to);
+            return new OpenApiReference((version == OpenApiVersion.version3 ? "#/components/schemas/" : "#/definitions/") + (expanded ? to + Expanded : to));
+        }
+
+        public static OpenApiReference ReferenceToEnum(OpenApiVersion version, string to)
+        {
+            return new OpenApiReference((version == OpenApiVersion.version3 ? "#/components/schemas/" : "#/definitions/") + to);
         }
 
         public static OpenApiReference ReferenceToParameter(OpenApiVersion version, string to)

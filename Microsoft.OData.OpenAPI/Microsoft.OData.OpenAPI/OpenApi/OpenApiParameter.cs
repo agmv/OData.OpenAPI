@@ -287,7 +287,7 @@ namespace Microsoft.OData.OpenAPI
                 writer.WriteBooleanProperty(OpenApiConstants.OpenApiDocRequired, Required, false);
             }
 
-            if (writer.Version == OpenApiVersion.version3)
+            if (writer.Settings.OpenApiVersion == OpenApiVersion.version3)
             {
                 // deprecated
                 writer.WriteBooleanProperty(OpenApiConstants.OpenApiDocDeprecated, Deprecated, false);

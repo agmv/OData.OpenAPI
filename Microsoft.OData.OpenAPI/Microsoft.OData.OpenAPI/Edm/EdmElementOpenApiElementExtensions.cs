@@ -42,7 +42,7 @@ namespace Microsoft.OData.OpenAPI
                     return new OpenApiSchema
                     {
                         Type = "array",
-                        Items = CreateSchema(reference.AsCollection().ElementType(), version, true)
+                        Items = CreateSchema(reference.AsCollection().ElementType(), version, expanded)
                     };
 
                 case EdmTypeKind.Complex:
@@ -50,12 +50,12 @@ namespace Microsoft.OData.OpenAPI
                 case EdmTypeKind.EntityReference:
                     return new OpenApiSchema
                     {
-                        Reference = EdmHelper.ReferenceToEntity(version, reference.Definition.FullTypeName(), expanded)
+                        Reference = EdmHelper.ReferenceToEntity(version, reference.Definition.FullTypeName(), true, expanded)
                     };
                 case EdmTypeKind.Enum:
                     return new OpenApiSchema
                     {
-                        Reference = EdmHelper.ReferenceToEntity(version, reference.Definition.FullTypeName(), false)
+                        Reference = EdmHelper.ReferenceToEnum(version, reference.Definition.FullTypeName())
                     };
 
                 case EdmTypeKind.Primitive:
@@ -84,6 +84,27 @@ namespace Microsoft.OData.OpenAPI
                             Format = "double",
                         };
                     }
+                    else if (reference.IsGeography())
+                    {
+                        schema = new OpenApiSchema
+                        {
+                            Reference = new OpenApiReference(@"https://raw.githubusercontent.com/oasis-tcs/odata-openapi/master/examples/odata-definitions.json#/definitions/Edm.GeographyPoint")
+                        };
+                    }
+                    else if (reference.IsGeometry())
+                    {
+                        schema = new OpenApiSchema
+                        {
+                            Reference = new OpenApiReference(@"https://raw.githubusercontent.com/oasis-tcs/odata-openapi/master/examples/odata-definitions.json#/definitions/Edm.GeometryPoint")
+                        };
+                    }
+                    else if (reference.IsStream())
+                    {
+                        schema = new OpenApiSchema
+                        {
+                            Reference = new OpenApiReference(@"https://raw.githubusercontent.com/oasis-tcs/odata-openapi/master/examples/odata-definitions.json#/definitions/Edm.Stream")
+                        };
+                    }
                     else
                     {
                         schema = new OpenApiSchema
@@ -102,7 +123,7 @@ namespace Microsoft.OData.OpenAPI
         }
 
         public static OpenApiPathItem CreatePathItem(this IEdmOperationImport operationImport, OpenApiVersion version)
-        {
+        {            
             if (operationImport.Operation.IsAction())
             {
                 return ((IEdmActionImport)operationImport).CreatePathItem(version);
@@ -123,11 +144,20 @@ namespace Microsoft.OData.OpenAPI
 
         public static OpenApiPathItem CreatePathItem(this IEdmActionImport actionImport, OpenApiVersion version)
         {
-            return CreatePathItem(actionImport.Action, null, version);
+            return new OpenApiPathItem
+            {
+                Post = new OpenApiOperation
+                {
+                    Summary = "Invoke action " + actionImport.Action.Name,
+                    Tags = CreateTags(actionImport),
+                    Parameters = CreateParameters(actionImport.Action, null, version),
+                    Responses = CreateResponses(actionImport.Action, version)
+                }
+            };            
         }
 
         public static OpenApiPathItem CreatePathItem(this IEdmAction action, IEdmEntitySet entitySet, OpenApiVersion version)
-        {
+        {            
             return new OpenApiPathItem
             {
                 Post = new OpenApiOperation
@@ -141,8 +171,17 @@ namespace Microsoft.OData.OpenAPI
         }
 
         public static OpenApiPathItem CreatePathItem(this IEdmFunctionImport functionImport, OpenApiVersion version)
-        {            
-            return CreatePathItem(functionImport.Function, null, version);
+        {
+            return new OpenApiPathItem
+            {
+                Get = new OpenApiOperation
+                {
+                    Summary = "Invoke function " + functionImport.Function.Name,
+                    Tags = CreateTags(functionImport),
+                    Parameters = CreateParameters(functionImport.Function, null, version),
+                    Responses = CreateResponses(functionImport.Function, version)
+                }
+            };            
         }
 
         public static OpenApiPathItem CreatePathItem(this IEdmFunction function, IEdmEntitySet entitySet, OpenApiVersion version)
@@ -206,13 +245,35 @@ namespace Microsoft.OData.OpenAPI
             return ((IEdmFunction)operation).CreatePathItemName();
         }
 
-        private static OpenApiResponses CreateResponses(this IEdmAction actionImport, OpenApiVersion version)
+        private static OpenApiResponses CreateResponses(this IEdmAction action, OpenApiVersion version)
         {
-            return new OpenApiResponses
+
+            OpenApiResponses responses = new OpenApiResponses();
+
+            if (action.ReturnType != null) {
+                OpenApiResponse response = new OpenApiResponse
+                {
+                    Description = "Success",
+                    Content = new Dictionary<string, OpenApiMediaType>
+                {
+                    {
+                        "application/json",
+                        new OpenApiMediaType
+                        {
+                            Schema = action.ReturnType.CreateSchema(version)
+                        }
+                    }
+                }
+                };
+                responses.Add("200", response);
+            }
+            else
             {
-                "204".GetResponse(version),
-                "default".GetResponse(version)
-            };
+                responses.Add("204".GetResponse(version));
+
+            }
+            responses.Add("default".GetResponse(version));
+            return responses;            
         }
 
         private static OpenApiResponses CreateResponses(this IEdmFunction function, OpenApiVersion version)
@@ -276,11 +337,11 @@ namespace Microsoft.OData.OpenAPI
         {
             IList<OpenApiParameter> parameters = new List<OpenApiParameter>();
 
-            IEnumerable<IEdmOperationParameter> opParameters;
+            IList<IEdmOperationParameter> opParameters;
 
             if (operation.IsBound)
             {
-                opParameters = operation.Parameters.Skip(1);
+                opParameters = operation.Parameters.Skip(1).ToList();
                 if (entitySet != null)
                 {
                     parameters = EdmNavigationSourceExtensions.CreateKeyParameters(entitySet.EntityType(), version);
@@ -288,22 +349,47 @@ namespace Microsoft.OData.OpenAPI
             }
             else
             {
-                opParameters = operation.Parameters;
+                opParameters = operation.Parameters.ToList();
             }
-            
 
-            foreach (IEdmOperationParameter edmParameter in opParameters)
+            if (operation.IsFunction() || opParameters.Count <= 1)
             {
+                foreach (IEdmOperationParameter edmParameter in opParameters)
+                {
+                    parameters.Add(new OpenApiParameter
+                    {
+                        Name = edmParameter.Name,
+                        In = operation.IsFunction()?ParameterLocation.path:ParameterLocation.body,
+                        Required = true,
+                        Schema = edmParameter.Type.CreateSchema(version)
+                    });
+                }
+            }
+            else {
                 parameters.Add(new OpenApiParameter
                 {
-                    Name = edmParameter.Name,
-                    In = ParameterLocation.path,
+                    Name = operation.Name + "Post",
+                    In = ParameterLocation.body,
                     Required = true,
-                    Schema = edmParameter.Type.CreateSchema(version)
+                    Schema = CreateSchema(opParameters, version)
                 });
             }
 
             return parameters;
+        }
+        public static OpenApiSchema CreateSchema(IList<IEdmOperationParameter> parameters, OpenApiVersion version)
+        {
+            OpenApiSchema schema = new OpenApiSchema
+            {
+                Type = "object",
+                Required = new List<string>(),
+                Properties = new Dictionary<string, OpenApiSchema>()                
+            };
+            foreach (IEdmOperationParameter p in parameters) {
+                schema.Required.Add(p.Name);
+                schema.Properties.Add(p.Name, p.Type.CreateSchema(version));
+            }
+            return schema;
         }
 
         internal static string PathAsString(IEnumerable<string> path)

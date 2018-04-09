@@ -65,7 +65,7 @@ namespace Microsoft.OData.OpenAPI
                     "200",
                     new OpenApiResponse
                     {
-                        Description = "Retrieved entities",
+                        Description = "Retrieved " + entitySet.Name + " list",
                         Content = new Dictionary<string, OpenApiMediaType>
                         {
                             {
@@ -93,7 +93,7 @@ namespace Microsoft.OData.OpenAPI
                                                     Type = "array",
                                                     Items = new OpenApiSchema
                                                     {
-                                                        Reference = EdmHelper.ReferenceToEntity(version, entitySet.EntityType().FullName())
+                                                        Reference = EdmHelper.ReferenceToEntity(version, entitySet.EntityType().FullName(), true)
                                                     }
                                                 }
                                             }
@@ -122,11 +122,11 @@ namespace Microsoft.OData.OpenAPI
                 {
                     entitySet.Name
                 },
-                OperationId = "Post" + entitySet.Name,
+                OperationId = "Create" + entitySet.Name,                
                 RequestBody = new OpenApiRequestBody
                 {
                     Required = true,
-                    Description = "New entity",
+                    Description = "New " + entitySet.Name,
                     Content = new Dictionary<string, OpenApiMediaType>
                     {
                         {
@@ -134,13 +134,27 @@ namespace Microsoft.OData.OpenAPI
                             {
                                 Schema = new OpenApiSchema
                                 {
-                                    Reference = EdmHelper.ReferenceToEntity(version,  entitySet.EntityType().FullName())
+                                    Reference = EdmHelper.ReferenceToEntity(version, entitySet.EntityType().FullName(), true)
                                 }
                             }
                         }
                     }
                 }
             };
+
+            if (version == OpenApiVersion.version2) {
+                operation.Parameters = new List<OpenApiParameter> {
+                    new OpenApiParameter {
+                        Name = entitySet.Name,
+                        Required = true,
+                        In = ParameterLocation.body,
+                        Description = "New " + entitySet.Name,
+                        Schema = new OpenApiSchema {
+                            Reference = EdmHelper.ReferenceToEntity(version, entitySet.EntityType().FullName(), true)
+                        }                
+                    }
+                };
+            }
 
             operation.Responses = new OpenApiResponses
             {
@@ -157,7 +171,7 @@ namespace Microsoft.OData.OpenAPI
                                 {
                                     Schema = new OpenApiSchema
                                     {
-                                        Reference = EdmHelper.ReferenceToEntity(version, entitySet.EntityType().FullName())
+                                        Reference = EdmHelper.ReferenceToEntity(version, entitySet.EntityType().FullName(), true)
                                     }
                                 }
                             }
@@ -221,7 +235,7 @@ namespace Microsoft.OData.OpenAPI
                     "200",
                     new OpenApiResponse
                     {
-                        Description = "Retrieved entity",
+                        Description = "Retrieved " + entitySet.Name,
                         Content = new Dictionary<string, OpenApiMediaType>
                         {
                             {
@@ -230,7 +244,7 @@ namespace Microsoft.OData.OpenAPI
                                 {
                                     Schema = new OpenApiSchema
                                     {
-                                        Reference = EdmHelper.ReferenceToEntity(version,  entitySet.EntityType().FullName())
+                                        Reference = EdmHelper.ReferenceToEntity(version, entitySet.EntityType().FullName(), true)
                                     }
                                 }
                             }
@@ -267,7 +281,7 @@ namespace Microsoft.OData.OpenAPI
                     "200",
                     new OpenApiResponse
                     {
-                        Description = "Retrieved entity",
+                        Description = "Retrieved " + singleton.Name,
                         Content = new Dictionary<string, OpenApiMediaType>
                         {
                             {
@@ -276,7 +290,7 @@ namespace Microsoft.OData.OpenAPI
                                 {
                                     Schema = new OpenApiSchema
                                     {
-                                        Reference = EdmHelper.ReferenceToEntity(version, singleton.EntityType().FullName())
+                                        Reference = EdmHelper.ReferenceToEntity(version, singleton.EntityType().FullName(), true)
                                     }
                                 }
                             }
@@ -307,7 +321,7 @@ namespace Microsoft.OData.OpenAPI
             operation.RequestBody = new OpenApiRequestBody
             {
                 Required = true,
-                Description = "New property values",
+                Description = "New property values for " + entitySet.Name,
                 Content = new Dictionary<string, OpenApiMediaType>
                     {
                         {
@@ -315,12 +329,26 @@ namespace Microsoft.OData.OpenAPI
                             {
                                 Schema = new OpenApiSchema
                                 {
-                                    Reference = EdmHelper.ReferenceToEntity(version, entitySet.EntityType().FullName())
+                                    Reference = EdmHelper.ReferenceToEntity(version, entitySet.EntityType().FullName(), true)
                                 }
                             }
                         }
                     }
             };
+
+            if (version == OpenApiVersion.version2)
+            {
+                operation.Parameters.Add(
+                    new OpenApiParameter {
+                        Name = entitySet.Name,
+                        Required = true,
+                        In = ParameterLocation.body,
+                        Description = "New property values for " + entitySet.Name,
+                        Schema = new OpenApiSchema {
+                            Reference = EdmHelper.ReferenceToEntity(version, entitySet.EntityType().FullName(), true)
+                        }
+                    });
+            }
 
             operation.Responses = new OpenApiResponses
             {
@@ -354,12 +382,28 @@ namespace Microsoft.OData.OpenAPI
                             {
                                 Schema = new OpenApiSchema
                                 {
-                                    Reference = EdmHelper.ReferenceToEntity(version, singleton.EntityType().FullName())
+                                    Reference = EdmHelper.ReferenceToEntity(version, singleton.EntityType().FullName(), true)
                                 }
                             }
                         }
                     }
             };
+
+            if (version == OpenApiVersion.version2)
+            {
+                operation.Parameters.Add(
+                    new OpenApiParameter
+                    {
+                        Name = singleton.Name,
+                        Required = true,
+                        In = ParameterLocation.body,
+                        Description = "New property values for " + singleton.Name,
+                        Schema = new OpenApiSchema
+                        {
+                            Reference = EdmHelper.ReferenceToEntity(version, singleton.EntityType().FullName(), true)
+                        }
+                    });
+            }
 
             operation.Responses = new OpenApiResponses
             {
@@ -503,7 +547,7 @@ namespace Microsoft.OData.OpenAPI
 
             foreach (var property in entityType.NavigationProperties())
             {
-                expandItems.Add(property.Name + "Expanded"); // avoid creating recursive definitions
+                expandItems.Add(property.Name + "Expanded");
             }
 
             return expandItems;

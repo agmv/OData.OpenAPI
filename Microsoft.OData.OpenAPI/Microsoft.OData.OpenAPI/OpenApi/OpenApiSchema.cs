@@ -264,7 +264,7 @@ namespace Microsoft.OData.OpenAPI
             // AllOf
             writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocAllOf, AllOf);
 
-            if (writer.Version == OpenApiVersion.version3)
+            if (writer.Settings.OpenApiVersion == OpenApiVersion.version3)
             {
                 // OneOf
                 writer.WriteOptionalCollection(OpenApiConstants.OpenApiDocOneOf, OneOf);
@@ -312,7 +312,7 @@ namespace Microsoft.OData.OpenAPI
             // Default
             writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocDefault, Default);
 
-            if (writer.Version == OpenApiVersion.version3)
+            if (writer.Settings.OpenApiVersion == OpenApiVersion.version3)
             {
                 // nullable
                 writer.WriteOptionalProperty(OpenApiConstants.OpenApiDocNullable, Nullable);

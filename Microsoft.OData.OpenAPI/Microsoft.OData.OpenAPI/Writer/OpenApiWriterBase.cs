@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.OData.OpenAPI.Properties;
+using System.Linq;
 
 namespace Microsoft.OData.OpenAPI
 {
@@ -45,29 +46,21 @@ namespace Microsoft.OData.OpenAPI
         /// <summary>
         /// What OpenAPI version is being written.
         /// </summary>
-        public OpenApiVersion Version { get; }
-
-        /// <summary>
-        /// The name to give to the service
-        /// </summary>
-        public string ServiceName { get; }
-
-
-
+        public OpenApiWriterSettings Settings { get; }
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenApiWriterBase"/> class.
         /// </summary>
         /// <param name="textWriter">The text writer.</param>
         /// <param name="settings">The writer settings.</param>
-        public OpenApiWriterBase(TextWriter textWriter, OpenApiVersion version, string serviceName)
+        public OpenApiWriterBase(TextWriter textWriter, OpenApiWriterSettings settings)
         {
             Writer = textWriter;
             Writer.NewLine = "\n";
 
-            this.scopes = new Stack<Scope>();            
+            this.scopes = new Stack<Scope>();
 
-            Version = version;
-            ServiceName = serviceName;
+            Settings = settings;
         }
 
         /// <summary>

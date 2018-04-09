@@ -28,7 +28,7 @@ namespace Microsoft.OData.OpenAPI.Tests
             IEdmModel model = EdmModelHelper.EmptyModel;
 
             // Act
-            string json = WriteEdmModelToOpenApi(model, OpenApiTarget.Json);
+            string json = WriteEdmModelToOpenApi(model);
 
             // Assert
             Assert.Equal(Resources.GetString("Empty.OpenApi.json").Replace(), json);
@@ -39,9 +39,13 @@ namespace Microsoft.OData.OpenAPI.Tests
         {
             // Arrange
             IEdmModel model = EdmModelHelper.EmptyModel;
+            OpenApiWriterSettings settings = new OpenApiWriterSettings
+            {
+                Target = OpenApiTarget.Yaml
+            };
 
             // Act
-            string yaml = WriteEdmModelToOpenApi(model, OpenApiTarget.Yaml);
+            string yaml = WriteEdmModelToOpenApi(model, settings);
 
             // Assert
             Assert.Equal(Resources.GetString("Empty.OpenApi.yaml").Replace(), yaml);
@@ -54,7 +58,7 @@ namespace Microsoft.OData.OpenAPI.Tests
             IEdmModel model = EdmModelHelper.BasicEdmModel;
 
             // Act
-            string json = WriteEdmModelToOpenApi(model, OpenApiTarget.Json);
+            string json = WriteEdmModelToOpenApi(model);
 
             // Assert
             Assert.Equal(Resources.GetString("Basic.OpenApi.json").Replace(), json);
@@ -65,9 +69,13 @@ namespace Microsoft.OData.OpenAPI.Tests
         {
             // Arrange
             IEdmModel model = EdmModelHelper.BasicEdmModel;
+            OpenApiWriterSettings settings = new OpenApiWriterSettings
+            {
+                Target = OpenApiTarget.Yaml
+            };
 
             // Act
-            string yaml = WriteEdmModelToOpenApi(model, OpenApiTarget.Yaml);
+            string yaml = WriteEdmModelToOpenApi(model, settings);
 
             // Assert
             Assert.Equal(Resources.GetString("Basic.OpenApi.yaml").Replace(), yaml);
@@ -81,11 +89,12 @@ namespace Microsoft.OData.OpenAPI.Tests
             OpenApiWriterSettings settings = new OpenApiWriterSettings
             {
                 Version = new Version(1, 0, 1),
-                BaseUri = new Uri("http://services.odata.org/TrippinRESTierService/")
+                BaseUri = new Uri("http://services.odata.org/TrippinRESTierService/"),
+                Target = OpenApiTarget.Json
             };
 
             // Act
-            string json = WriteEdmModelToOpenApi(model, OpenApiTarget.Json, settings);
+            string json = WriteEdmModelToOpenApi(model, settings);
             output.WriteLine(json);
             // Assert
             Assert.Equal(Resources.GetString("TripService.OpenApi.json").Replace(), json);
@@ -99,21 +108,21 @@ namespace Microsoft.OData.OpenAPI.Tests
             OpenApiWriterSettings settings = new OpenApiWriterSettings
             {
                 Version = new Version(1, 0, 1),
-                BaseUri = new Uri("http://services.odata.org/TrippinRESTierService/")
+                BaseUri = new Uri("http://services.odata.org/TrippinRESTierService/"),
+                Target = OpenApiTarget.Yaml
             };
 
             // Act
-            string yaml = WriteEdmModelToOpenApi(model, OpenApiTarget.Yaml, settings);
+            string yaml = WriteEdmModelToOpenApi(model, settings);
 
             // Assert
             Assert.Equal(Resources.GetString("TripService.OpenApi.yaml").Replace(), yaml);
         }
 
-        private static string WriteEdmModelToOpenApi(IEdmModel model, OpenApiTarget target,
-            OpenApiWriterSettings settings = null)
+        private static string WriteEdmModelToOpenApi(IEdmModel model, OpenApiWriterSettings settings = null)
         {
             MemoryStream stream = new MemoryStream();
-            model.WriteOpenApi(stream, target, OpenApiVersion.version3, settings);
+            model.WriteOpenApi(stream, settings);
             stream.Flush();
             stream.Position = 0;
             return new StreamReader(stream).ReadToEnd();

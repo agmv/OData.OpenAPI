@@ -32,6 +32,6 @@ namespace Microsoft.OData.OpenAPI
         /// <summary>
         /// Comments.
         /// </summary>
-        public string Comments { get; set; }
+        public string Comments { get; set; }        
     }
 }
